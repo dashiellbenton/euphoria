@@ -134,152 +134,90 @@ def dp(v):
     m={"Compact":0.6,"Normal":1.0,"Comfortable":1.45}
     return max(1, int(v * m.get(SETTINGS.get("ui_density","Normal"),1.0)))
 
-SHADER_NAME = "tmpfixwasm_com.shader"
-SHADER_CONTENT = r'''Shader "WASM/Wasmcomfix"
+SHADER_NAME = "NPA_Text_Fix.shader"
+SHADER_DIR  = "NPA"   # sub-folder under Assets/Shaders/
+SHADER_CONTENT = r'''Shader "WASMCOM/WASMCOMFIX"
 {
     Properties
     {
-        _MainTex            ("Font Atlas",              2D)             = "white" {}
-        _TextureWidth       ("Texture Width",           Float)          = 512
-        _TextureHeight      ("Texture Height",          Float)          = 512
-        _GradientScale      ("Gradient Scale",          Float)          = 5.0
-        _ScaleX             ("Scale X",                 Float)          = 1.0
-        _ScaleY             ("Scale Y",                 Float)          = 1.0
-        _PerspectiveFilter  ("Perspective Filter",      Range(0, 1))    = 0.875
-        _Sharpness          ("Sharpness",               Range(-1, 1))   = 0
-        _FaceColor          ("Face Color",              Color)          = (1,1,1,1)
-        _FaceDilate         ("Face Dilate",             Range(-1, 1))   = 0
-        _FaceTex            ("Face Texture",            2D)             = "white" {}
-        _FaceUVSpeedX       ("Face UV Speed X",         Float)          = 0
-        _FaceUVSpeedY       ("Face UV Speed Y",         Float)          = 0
-        _OutlineColor       ("Outline Color",           Color)          = (0,0,0,1)
-        _OutlineWidth       ("Outline Thickness",       Range(0, 1))    = 0
-        _OutlineSoftness    ("Outline Softness",        Range(0, 1))    = 0
-        _OutlineTex         ("Outline Texture",         2D)             = "white" {}
-        _OutlineUVSpeedX    ("Outline UV Speed X",      Float)          = 0
-        _OutlineUVSpeedY    ("Outline UV Speed Y",      Float)          = 0
-        _UnderlayColor      ("Underlay Color",          Color)          = (0,0,0,0.5)
-        _UnderlayOffsetX    ("Underlay Offset X",       Range(-1, 1))   = 0
-        _UnderlayOffsetY    ("Underlay Offset Y",       Range(-1, 1))   = 0
-        _UnderlayDilate     ("Underlay Dilate",         Range(-1, 1))   = 0
-        _UnderlaySoftness   ("Underlay Softness",       Range(0, 1))    = 0
-        _WeightNormal       ("Weight Normal",           Float)          = 0
-        _WeightBold         ("Weight Bold",             Float)          = 0.5
-        _GlowColor          ("Glow Color",              Color)          = (0,0,1,0.5)
-        _GlowOffset         ("Glow Offset",             Range(-1, 1))   = 0
-        _GlowInner          ("Glow Inner",              Range(0, 1))    = 0.05
-        _GlowOuter          ("Glow Outer",              Range(0, 1))    = 0.05
-        _GlowPower          ("Glow Power",              Range(0, 1))    = 0.75
-        _Bevel              ("Bevel",                   Range(0, 1))    = 0.5
-        _BevelOffset        ("Bevel Offset",            Range(-0.5,0.5))= 0
-        _BevelWidth         ("Bevel Width",             Range(-1, 1))   = 0
-        _BevelClamp         ("Bevel Clamp",             Range(0, 1))    = 0
-        _BevelRoundness     ("Bevel Roundness",         Range(0, 1))    = 0
-        _LightAngle         ("Light Angle",             Float)          = 3.1416
-        _SpecularColor      ("Specular Color",          Color)          = (1,1,1,1)
-        _SpecularPower      ("Specular Power",          Range(0, 4))    = 2.0
-        _Reflectivity       ("Reflectivity",            Range(5,15))    = 10
-        _Diffuse            ("Diffuse",                 Range(0, 1))    = 0.5
-        _Ambient            ("Ambient",                 Range(0, 1))    = 0.5
-        _EnvMap             ("Environment Cubemap",     Cube)           = "black" {}
-        _EnvMatrix          ("Environment Matrix",      Float)          = 0
-        _EnvMatrixRotation  ("Env Matrix Rotation",     Float)          = 0
-        _ScaleRatioA        ("Scale Ratio A",           Float)          = 1
-        _ScaleRatioB        ("Scale Ratio B",           Float)          = 1
-        _ScaleRatioC        ("Scale Ratio C",           Float)          = 1
-        _ClipRect           ("Clip Rect",               Vector)         = (-32767,-32767,32767,32767)
-        _MaskSoftnessX      ("Mask Softness X",         Float)          = 0
-        _MaskSoftnessY      ("Mask Softness Y",         Float)          = 0
-        _VertexOffsetX      ("Vertex Offset X",         Float)          = 0
-        _VertexOffsetY      ("Vertex Offset Y",         Float)          = 0
-        _StencilComp        ("Stencil Comparison",      Float)          = 8
-        _Stencil            ("Stencil ID",              Float)          = 0
-        _StencilOp          ("Stencil Operation",       Float)          = 0
-        _StencilWriteMask   ("Stencil Write Mask",      Float)          = 255
-        _StencilReadMask    ("Stencil Read Mask",       Float)          = 255
-        _ColorMask          ("Color Mask",              Float)          = 15
-        _UseClipRect        ("Use Clip Rect",           Float)          = 1
-        _UseAlphaClip       ("Use Alpha Clip",          Float)          = 0
+        _MainTex("Font Atlas (SDF)", 2D) = "white" {}
+        _FaceColor("Face Color", Color) = (1,1,1,1)
+        _OutlineColor("Outline Color", Color) = (0,0,0,1)
+        _OutlineWidth("Outline Thickness", Range(0,1)) = 0
+        _OutlineSoftness("Outline Softness", Range(0,1)) = 0
+        _GradientScale("Gradient Scale", float) = 5.0
+        _Sharpness("Sharpness", Range(-1,1)) = 1
+        _Weight("Text Weight", Range(-0.5,0.5)) = 0.5
     }
+
     SubShader
     {
         Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
-        Stencil { Ref [_Stencil] Comp [_StencilComp] Pass [_StencilOp]
-                  ReadMask [_StencilReadMask] WriteMask [_StencilWriteMask] }
-        Cull Off  ZWrite Off  Lighting Off
-        Fog { Mode Off }
+        ZWrite Off
+        Lighting Off
+        Cull Off
         Blend One OneMinusSrcAlpha
-        ColorMask [_ColorMask]
+
         Pass
         {
             CGPROGRAM
-            sampler2D _MainTex; float4 _MainTex_ST;
-            float _GradientScale,_Sharpness,_ScaleRatioA,_ScaleRatioB,_ScaleRatioC;
-            float4 _FaceColor; float _FaceDilate; sampler2D _FaceTex;
-            float _FaceUVSpeedX,_FaceUVSpeedY;
-            float4 _OutlineColor; float _OutlineWidth,_OutlineSoftness;
-            sampler2D _OutlineTex; float _OutlineUVSpeedX,_OutlineUVSpeedY;
-            float4 _UnderlayColor; float _UnderlayOffsetX,_UnderlayOffsetY,_UnderlayDilate,_UnderlaySoftness;
-            float _WeightNormal,_WeightBold;
-            float4 _GlowColor; float _GlowOffset,_GlowInner,_GlowOuter,_GlowPower;
-            float4 _ClipRect; float _UseClipRect,_UseAlphaClip;
-            struct appdata { float4 vertex:POSITION; float2 uv0:TEXCOORD0; float2 uv1:TEXCOORD1; float4 color:COLOR; };
-            struct v2f { float4 pos:SV_POSITION; float2 uv0:TEXCOORD0; float2 uv1:TEXCOORD1; float4 col:COLOR; float weight:TEXCOORD2; };
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+
+            float4 _FaceColor;
+            float4 _OutlineColor;
+            float _OutlineWidth;
+            float _OutlineSoftness;
+            float _GradientScale;
+            float _Sharpness;
+            float _Weight;
+
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv     : TEXCOORD0;
+                float4 color  : COLOR;
+            };
+
+            struct v2f
+            {
+                float4 pos : SV_POSITION;
+                float2 uv  : TEXCOORD0;
+                float4 col : COLOR;
+            };
+
             v2f vert(appdata v)
             {
-                float bold=step(v.color.a,0.1);
-                float weight=lerp(_WeightNormal,_WeightBold,bold)*_ScaleRatioA+_FaceDilate*_ScaleRatioA*0.5;
-                v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv0=TRANSFORM_TEX(v.uv0,_MainTex);
-                o.uv1=v.uv1; o.col=v.color; o.weight=weight; return o;
+                v2f o;
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.col = v.color;
+                return o;
             }
+
             fixed4 frag(v2f i) : SV_Target
             {
-                float weight=i.weight; float sdf=tex2D(_MainTex,i.uv0).a;
-                float scale=max(_GradientScale*(_Sharpness*0.5+1.0)*_ScaleRatioA,1e-4);
-                float bias=0.5-weight; float aa=max(fwidth(sdf)*0.75,1.0/128.0);
-                float outline=_OutlineWidth*_ScaleRatioA*0.5;
-                float softness=max(_OutlineSoftness*_ScaleRatioA*0.5+aa,1e-4);
-                float faceAlpha=smoothstep(bias-aa,bias+aa,sdf);
-                float outEdge=bias-outline;
-                float outAlpha=smoothstep(outEdge-softness,outEdge+softness,sdf);
-                float2 faceUV=i.uv0+float2(_FaceUVSpeedX,_FaceUVSpeedY)*_Time.y;
-                float2 outUV=i.uv0+float2(_OutlineUVSpeedX,_OutlineUVSpeedY)*_Time.y;
-                float4 faceCol=_FaceColor*tex2D(_FaceTex,faceUV);
-                float4 outlineCol=_OutlineColor*tex2D(_OutlineTex,outUV);
-                float glowMin=max(bias-_GlowOuter*_ScaleRatioB*0.5,0.0);
-                float glowMax=min(bias+_GlowInner*_ScaleRatioB*0.5,bias);
-                float glowA=smoothstep(glowMin-aa,glowMin+aa,sdf)-smoothstep(glowMax-aa,glowMax+aa,sdf);
-                glowA=pow(saturate(glowA),_GlowPower)*_GlowColor.a*_ScaleRatioB;
-                float4 glow=float4(_GlowColor.rgb*glowA,glowA);
-                float2 ulUV=i.uv0-float2(_UnderlayOffsetX,_UnderlayOffsetY)*_ScaleRatioC*0.5;
-                float ulSDF=tex2D(_MainTex,ulUV).a;
-                float ulBias=bias-_UnderlayDilate*_ScaleRatioC*0.5;
-                float ulSoft=max(_UnderlaySoftness*_ScaleRatioC*0.5+aa,1e-4);
-                float ulA=smoothstep(ulBias-ulSoft,ulBias+ulSoft,ulSDF)*_UnderlayColor.a;
-                float4 underlay=float4(_UnderlayColor.rgb*ulA,ulA);
-                float4 col=underlay;
-                col=lerp(col,glow,glow.a);
-                col=lerp(col,outlineCol,outAlpha*outlineCol.a);
-                col=lerp(col,faceCol,faceAlpha*faceCol.a);
-                col.a=max(max(ulA,outAlpha*outlineCol.a),max(faceAlpha*faceCol.a,glow.a));
-                col*=fixed4(i.col.rgb,1.0);
-                if(_UseClipRect>0.5){float2 s=step(_ClipRect.xy,i.uv1)*step(i.uv1,_ClipRect.zw);col.a*=s.x*s.y;}
-                col.rgb*=col.a;
-                if(_UseAlphaClip>0.5) clip(col.a-0.001);
-                return col;
+                float sdf = tex2D(_MainTex, i.uv).a;
+                float scale = _GradientScale * (_Sharpness + 1);
+                float dist = (sdf * scale - 0.5) - (_Weight * scale);
+                float aa = fwidth(dist);
+                float outline = _OutlineWidth * scale;
+                float softness = _OutlineSoftness * scale + 1e-4;
+                float effectiveSoftness = max(softness, aa);
+                float alpha = smoothstep(-effectiveSoftness, effectiveSoftness, dist);
+                float outlineAlpha = smoothstep(-effectiveSoftness - outline, effectiveSoftness - outline, dist);
+                fixed4 col = lerp(_OutlineColor, _FaceColor, alpha);
+                col.a = max(alpha, outlineAlpha);
+                return col * i.col;
             }
-            ENDCG
-        }
-        Pass
-        {
-            ColorMask 0  ZWrite Off
-            CGPROGRAM
-            float4 vert_m(float4 v:POSITION):SV_POSITION{return UnityObjectToClipPos(v);}
-            fixed4 frag_m():SV_Target{return fixed4(0,0,0,0);}
             ENDCG
         }
     }
-    FallBack "Hidden/InternalErrorShader"
 }
 '''
 
@@ -305,7 +243,7 @@ def find_unity_projects():
 
 def inject_shader(project_path: Path):
     try:
-        d=project_path/"Assets"/"Shaders"/"WASM"; d.mkdir(parents=True,exist_ok=True)
+        d=project_path/"Assets"/"Shaders"/SHADER_DIR; d.mkdir(parents=True,exist_ok=True)
         dest=d/SHADER_NAME; dest.write_text(SHADER_CONTENT,encoding="utf-8")
         meta=dest.with_suffix(dest.suffix+".meta")
         if not meta.exists():
@@ -319,30 +257,16 @@ def inject_shader(project_path: Path):
     except Exception as e: return False, str(e)
 
 _WASM_FLOAT_DEFAULTS = {
-    "_TextureWidth":512,"_TextureHeight":512,"_GradientScale":5.0,
-    "_ScaleX":1.0,"_ScaleY":1.0,"_PerspectiveFilter":0.875,"_Sharpness":0,
-    "_FaceDilate":0,"_FaceUVSpeedX":0,"_FaceUVSpeedY":0,
-    "_OutlineWidth":0,"_OutlineSoftness":0,"_OutlineUVSpeedX":0,"_OutlineUVSpeedY":0,
-    "_UnderlayOffsetX":0,"_UnderlayOffsetY":0,"_UnderlayDilate":0,"_UnderlaySoftness":0,
-    "_WeightNormal":0,"_WeightBold":0.5,
-    "_GlowOffset":0,"_GlowInner":0.05,"_GlowOuter":0.05,"_GlowPower":0.75,
-    "_Bevel":0.5,"_BevelOffset":0,"_BevelWidth":0,"_BevelClamp":0,"_BevelRoundness":0,
-    "_LightAngle":3.1416,"_SpecularPower":2.0,"_Reflectivity":10,"_Diffuse":0.5,"_Ambient":0.5,
-    "_EnvMatrix":0,"_EnvMatrixRotation":0,
-    "_ScaleRatioA":1,"_ScaleRatioB":1,"_ScaleRatioC":1,
-    "_MaskSoftnessX":0,"_MaskSoftnessY":0,"_VertexOffsetX":0,"_VertexOffsetY":0,
-    "_StencilComp":8,"_Stencil":0,"_StencilOp":0,"_StencilWriteMask":255,"_StencilReadMask":255,
-    "_ColorMask":15,"_UseClipRect":1,"_UseAlphaClip":0,
+    "_GradientScale":5.0,"_Sharpness":1.0,
+    "_Weight":0.5,"_OutlineWidth":0,"_OutlineSoftness":0,
 }
 _WASM_COLOR_DEFAULTS = {
-    "_FaceColor":(1,1,1,1),"_OutlineColor":(0,0,0,1),"_UnderlayColor":(0,0,0,0.5),
-    "_GlowColor":(0,0,1,0.5),"_SpecularColor":(1,1,1,1),
-    "_ClipRect":(-32767,-32767,32767,32767),
+    "_FaceColor":(1,1,1,1),"_OutlineColor":(0,0,0,1),
 }
-_WASM_TEX_DEFAULTS = ["_MainTex","_FaceTex","_OutlineTex"]
+_WASM_TEX_DEFAULTS = ["_MainTex"]
 
 def apply_wasm_shader_to_tmp_materials(project_path: Path, log_cb=None):
-    shader_meta = project_path/"Assets"/"Shaders"/"WASM"/(SHADER_NAME+".meta")
+    shader_meta = project_path/"Assets"/"Shaders"/SHADER_DIR/(SHADER_NAME+".meta")
     shader_guid = None
     if shader_meta.exists():
         m = re.search(r'guid:\s*([0-9a-f]{32})', shader_meta.read_text(encoding="utf-8"))
@@ -439,6 +363,178 @@ def fix_script_guids(project_path: Path, log_cb=None):
         except Exception as e:
             errors.append(f"{cs.name}: {e}")
             if log_cb: log_cb(f"  ERROR {cs.name}: {e}")
+    return fixed, skipped, errors
+
+# ── Unity Reference Fixer ─────────────────────────────────────────────────────
+# Scans .prefab / .unity / .asset files for MonoBehaviour blocks whose
+# m_Script GUID is missing (all-zeros or fileID:0) and attempts to
+# re-link them by matching serialised field names against every .cs script
+# in the project.
+
+def _build_script_index(project_path: Path, log_cb=None):
+    """
+    Returns:
+        guid_map  : {guid: {"class": str, "fields": set[str], "path": Path}}
+        class_map : {class_name_lower: guid}
+    """
+    assets = project_path / "Assets"
+    guid_map   = {}
+    class_map  = {}
+
+    for cs_path in assets.rglob("*.cs"):
+        meta = cs_path.with_suffix(cs_path.suffix + ".meta")
+        if not meta.exists():
+            continue
+        m = re.search(r'guid:\s*([0-9a-f]{32})', meta.read_text(encoding="utf-8", errors="replace"))
+        if not m:
+            continue
+        guid = m.group(1)
+        try:
+            src = cs_path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+
+        # extract class name
+        cl_m = re.search(r'(?:class|struct)\s+(\w+)', src)
+        class_name = cl_m.group(1) if cl_m else cs_path.stem
+
+        # extract serialised field names (public or [SerializeField])
+        fields: set[str] = set()
+        for ln in src.splitlines():
+            # public Type fieldName  or  [SerializeField] ... Type fieldName
+            fm = re.search(r'(?:public|protected|private)\s+\S+\s+(\w+)\s*[;=\[]', ln)
+            if fm:
+                fields.add(fm.group(1))
+            sfm = re.search(r'\[SerializeField\].*?(\w+)\s*[;=\[]', ln)
+            if sfm:
+                fields.add(sfm.group(1))
+
+        guid_map[guid]  = {"class": class_name, "fields": fields, "path": cs_path}
+        class_map[class_name.lower()] = guid
+
+    if log_cb:
+        log_cb(f"  Script index: {len(guid_map)} scripts catalogued")
+    return guid_map, class_map
+
+
+_MISSING_GUID_PATTERN = re.compile(
+    r'm_Script:\s*\{fileID:\s*(\d+),\s*guid:\s*(0{32}|),\s*type:\s*\d+\}|'
+    r'm_Script:\s*\{fileID:\s*0[^}]*\}'
+)
+
+def fix_missing_script_refs(project_path: Path, log_cb=None):
+    """
+    Re-links MonoBehaviour components whose m_Script reference is missing
+    (all-zero GUID / fileID:0) back to the best-matching .cs script found
+    in the project.
+
+    Matching strategy (highest score wins):
+      1. Class name appears literally in the block (e.g. a comment or type field) +5
+      2. Serialised field overlap between the YAML block and the script        +n
+    Returns (fixed, skipped, errors).
+    """
+    if log_cb: log_cb("  Building script index...")
+    guid_map, class_map = _build_script_index(project_path, log_cb)
+    if not guid_map:
+        if log_cb: log_cb("  No .cs scripts found in project – nothing to do")
+        return 0, 0, []
+
+    exts   = ["*.unity", "*.prefab", "*.asset"]
+    files  = []
+    for ext in exts:
+        files.extend((project_path / "Assets").rglob(ext))
+
+    if log_cb: log_cb(f"  Scanning {len(files)} scene/prefab/asset file(s)...")
+
+    fixed = 0; skipped = 0; errors = []
+
+    # pre-compile per-script field matchers once
+    script_field_sets = {g: info["fields"] for g, info in guid_map.items()}
+
+    for f in files:
+        try:
+            src  = f.read_text(encoding="utf-8", errors="replace")
+            out  = src
+            hits = 0
+
+            # split into YAML documents (--- blocks)
+            raw_blocks = re.split(r'(\n---\s+)', src)
+
+            for block in raw_blocks:
+                if "MonoBehaviour:" not in block:
+                    continue
+
+                # check if m_Script is already valid (non-zero guid pointing at
+                # a known project script)
+                existing = re.search(
+                    r'm_Script:\s*\{fileID:\s*\d+,\s*guid:\s*([0-9a-f]{32}),\s*type:\s*\d+\}',
+                    block)
+                if existing:
+                    eg = existing.group(1)
+                    if eg != "0" * 32 and eg in guid_map:
+                        skipped += 1
+                        continue
+                    # GUID exists but points nowhere in our index — treat as missing
+                    if eg not in guid_map and eg != "0" * 32:
+                        # unknown external package ref; skip it
+                        skipped += 1
+                        continue
+
+                # --- missing reference path ---
+                # extract YAML field keys from this block
+                block_keys: set[str] = set(re.findall(r'^\s{2,}(\w+):', block, re.MULTILINE))
+
+                best_guid  = None
+                best_score = 0
+
+                for g, info in guid_map.items():
+                    score = 0
+                    # class-name hint in the block
+                    if info["class"].lower() in block.lower():
+                        score += 5
+                    # field overlap
+                    overlap = len(block_keys & info["fields"])
+                    score  += overlap
+
+                    if score > best_score:
+                        best_score = score
+                        best_guid  = g
+
+                if not best_guid or best_score < 1:
+                    if log_cb:
+                        log_cb(f"  ⚠  {f.name}: MonoBehaviour with no match (score=0) — skipped")
+                    skipped += 1
+                    continue
+
+                info = guid_map[best_guid]
+                new_ref = f'm_Script: {{fileID: 11500000, guid: {best_guid}, type: 3}}'
+
+                # replace only the broken m_Script line in this block
+                patched_block = re.sub(
+                    r'm_Script:\s*\{[^}]*\}',
+                    new_ref,
+                    block,
+                    count=1
+                )
+                if patched_block != block:
+                    out = out.replace(block, patched_block, 1)
+                    hits += 1
+                    if log_cb:
+                        log_cb(f"  ✓  {f.name}  →  {info['class']}  (score {best_score})")
+
+            if hits:
+                f.write_text(out, encoding="utf-8")
+                fixed += hits
+
+        except Exception as e:
+            errors.append(f"{f.name}: {e}")
+            if log_cb: log_cb(f"  ERROR {f.name}: {e}")
+
+    if log_cb:
+        log_cb(f"\n  ── Reference Fix Summary ──")
+        log_cb(f"  Re-linked {fixed} missing script reference(s)")
+        log_cb(f"  Skipped   {skipped} (already valid or unresolvable)")
+        if errors: log_cb(f"  {len(errors)} error(s)")
     return fixed, skipped, errors
 
 _BUILTIN_SHADER_REMAP = {
@@ -958,7 +1054,7 @@ class TutorialOverlay(tk.Frame):
         for num,title,desc in [
             ("1","Find a TextMeshPro GameObject","In your Hierarchy, find any GameObject with a TextMeshPro component."),
             ("2","Select it","Click the object to open the Inspector."),
-            ("3","Change Shader","In the TMP material, set Shader to: WASM → Wasmcomfix"),
+            ("3","Change Shader","In the TMP material, set Shader to: NPA → NPA Text Fix"),
             ("4","Apply to all","Repeat for every TMP object, or create a shared material."),
         ]:
             row=tk.Frame(body,bg=CARD); row.pack(fill="x",pady=5)
@@ -1202,7 +1298,7 @@ class UnityFixesPanel(tk.Frame):
     def _build_cards(self):
         fixes=[
             ("shader",   "◈","TMP Shader Fix",
-             "Injects WASM/Wasmcomfix shader, then scans for TMP objects",
+             "Injects NPA/NPA Text Fix shader, then scans for TMP objects",
              "⚡  Execute", self._exec_shader),
             ("broken_shaders", "◉", "Broken Shader Auto-Fix",
              "Remaps pink/missing shaders in .mat files to matching project or built-in shaders",
@@ -1210,6 +1306,9 @@ class UnityFixesPanel(tk.Frame):
             ("guid",     "⬡","Script GUID Stability",
              "Deterministic .meta GUIDs from assembly+class name",
              "⚡  Execute", self._exec_guid),
+            ("ref_fix",  "⬡","Missing Reference Fixer",
+             "Re-links GameObjects with 'No reference found' scripts back to their .cs files",
+             "⚡  Execute", self._exec_ref_fix),
         ]
         for i,(key,icon,title,sub,btn,fn) in enumerate(fixes):
             pad_top=0 if i==0 else dp(8)
@@ -1310,6 +1409,19 @@ class UnityFixesPanel(tk.Frame):
     def _exec_guid(self,log,done):
         self._make_exec(fix_script_guids,
             lambda r:f"Updated {r[0]} GUIDs, skipped {r[1]}, {len(r[2])} error(s)")(log,done)
+
+    def _exec_ref_fix(self, log, done):
+        if not self._require_project(): return
+        def _w():
+            log("  Scanning scripts and building field index...")
+            log("  Looking for MonoBehaviours with missing m_Script references...")
+            fixed, skipped, errors = fix_missing_script_refs(self._project, log)
+            summary = f"Re-linked {fixed} reference(s)  ·  {skipped} skipped"
+            if errors: summary += f"  ·  {len(errors)} error(s)"
+            if fixed > 0:
+                log("\n  Reimport Scripts in Unity to apply changes.")
+            done(fixed > 0 or not errors, summary)
+        threading.Thread(target=_w, daemon=True).start()
 
 class SettingsPanel(tk.Frame):
     def __init__(self,parent,rebuild_cb,**kw):
@@ -1607,10 +1719,11 @@ class AboutPanel(tk.Frame):
         cv.bind_all("<MouseWheel>",lambda e:cv.yview_scroll(int(-1*(e.delta/120)),"units"))
 
         roadmap=[
-            ("TMP WASM Shader Fix","TextMeshPro · Shader · WASM","ACTIVE",SUCCESS,
-             "Injects a full TMP-compatible SDF shader with all required ShaderUtilities properties "
-             "(_WeightNormal, _WeightBold, _FaceDilate, _ScaleRatioA/B/C) and a no-op Pass 1 for "
-             "Graphics.Blit(mat, pass:1) masking calls. Fixes red boxes and TMP material crash."),
+            ("NPA Text Fix Shader","TextMeshPro · Shader · SDF","ACTIVE",SUCCESS,
+             "Replaces the old WASM/Wasmcomfix shader with the clean NPA/NPA Text Fix SDF shader. "
+             "Injects NPA_Text_Fix.shader into Assets/Shaders/NPA/ and patches all TMP materials "
+             "to reference it. Fixes red boxes and TMP material crashes with a much simpler, "
+             "production-quality SDF implementation."),
             ("Broken Shader Auto-Fix","Shader · Material · Pink · Missing","ACTIVE",SUCCESS,
              "Scans all .mat files in Assets for broken shader references (pink/magenta objects). "
              "Indexes every .shader file in the project and remaps materials by property-signature "
@@ -1619,6 +1732,12 @@ class AboutPanel(tk.Frame):
             ("Script GUID Stability","GUID · MonoScript · Prefab · Meta","ACTIVE",SUCCESS,
              "Derives script asset GUIDs deterministically from MD5(namespace+classname), matching Unity's "
              "own algorithm. All m_Script references in Prefabs/Scenes resolve across re-exports."),
+            ("Missing Reference Fixer","GameObject · MonoBehaviour · Script · GUID","ACTIVE",SUCCESS,
+             "Scans all .unity / .prefab / .asset files for MonoBehaviour components with a missing or "
+             "all-zero m_Script GUID (the dreaded 'No reference found'). Builds a full field index of "
+             "every .cs script in the project and scores each broken block against every script by "
+             "serialised-field overlap and class-name hints. Best match is automatically re-linked. "
+             "Run after Script GUID Stability for best results."),
         ]
 
         for i,(title,tags_str,status,sc,desc) in enumerate(roadmap):

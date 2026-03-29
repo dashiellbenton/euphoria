@@ -45,26 +45,7 @@ python Euphoria.py
 
 The window opens centered on the screen. Select your Unity project either from the auto-detected list or by browsing manually.
 
-## Running C++ to dll
 
-Download euphoriaServer.cpp and open x64 Native Tools Command Prompt for VS. Then run
-
-```bash
-cl /LD /EHsc /std:c++17 euphoriaServer.cpp /link /OUT:euphoriaServer.dll
-```
-
-After building from source, run
-
-```python
-import ctypes
-dll = ctypes.WinDLL(r"euphoriaServer.dll")
-dll.EuphoriaStart()
-input("press enter to stop...")
-dll.EuphoriaStop()
-```
-This will open a localhost:8000 with Euphoria running in it.
-
------
 
 ## Fixes
 
